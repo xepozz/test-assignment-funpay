@@ -1,0 +1,22 @@
+{
+    "name": "xepozz/funpay-test-assignment",
+    "autoload": {
+        "psr-4": {
+            "Xepozz\\FunpayTestAssignment\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Xepozz\\FunpayTestAssignment\\Tests\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dmitrii Derepko",
+            "email": "xepozz@list.ru"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^10"
+    }
+}
