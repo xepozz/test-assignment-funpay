@@ -36,10 +36,15 @@ class BuildTest extends TestCase
             ['Jack', true],
             "SELECT * FROM users WHERE name = 'Jack' AND block = 1",
         ];
-        yield 'array param' => [
+        yield 'array of identifiers' => [
             "SELECT ?# FROM users WHERE user_id = ?d AND block = ?d",
             [['name', 'email'], 2, true],
             "SELECT 'name', 'email' FROM users WHERE user_id = 2 AND block = 1",
+        ];
+        yield 'array params' => [
+            "UPDATE users SET ?a WHERE user_id = -1",
+            [['name' => 'Jack', 'email' => null]],
+            "UPDATE users SET name = 'Jack', email = NULL WHERE user_id = -1",
         ];
     }
 

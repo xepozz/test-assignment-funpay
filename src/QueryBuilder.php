@@ -13,6 +13,7 @@ class QueryBuilder
         $hasPlaceholders = preg_match_all(
             <<<REGEXP
         /(?|
+        \?a|
         \?d|
         \?\#|
         \?
@@ -56,35 +57,47 @@ class QueryBuilder
         $varType = gettype($var);
         switch ($symbol) {
             case '?':
-                if (!in_array($varType, ['string', 'integer', 'float', 'boolean', 'null'])) {
-                    throw new \Exception('Unsupported variable type: ' . $varType . ' var: ' . print_r($var, true));
-                }
-                $result = match ($varType) {
-                    'string' => sprintf("'%s'", $var),
-                    'integer' => (string) $var,
-                };
+                $this->assertVariableTypes($varType, ['string', 'integer', 'float', 'boolean', 'null'], $var);
+                $result = $this->castValue($var);
                 break;
             case '?d':
-                if (!in_array($varType, ['integer', 'boolean'])) {
-                    throw new \Exception('Unsupported variable type: ' . $varType . ' var: ' . print_r($var, true));
-                }
-                $result = match ($varType) {
-                    'integer' => (string) $var,
-                    'boolean' => (string) (int) $var,
-                };
+                $this->assertVariableTypes($varType, ['integer', 'boolean'], $var);
+                $result = $this->castValue($var);
                 break;
             case '?#':
-                if (!in_array($varType, ['array'])) {
-                    throw new \Exception('Unsupported variable type: ' . $varType . ' var: ' . print_r($var, true));
+                $this->assertVariableTypes($varType, ['array'], $var);
+                $result = $this->castValue($var);
+                break;
+            case '?a':
+                $this->assertVariableTypes($varType, ['array'], $var);
+                $result = [];
+                foreach ($var as $key => $value) {
+                    $result[] = sprintf('%s = %s', $key, $this->castValue($value));
                 }
-                $result = match ($varType) {
-                    'array' => sprintf("'%s'", implode("', '", $var)),
-                };
+                $result = sprintf("%s", implode(", ", $result));
                 break;
             default:
                 throw new \Exception('Unsupported modified: ' . $symbol);
         }
 
         return $result;
+    }
+
+    private function castValue(mixed $value): string
+    {
+        return match (gettype($value)) {
+            'string' => sprintf("'%s'", $value),
+            'integer' => (string) $value,
+            'NULL' => 'NULL',
+            'boolean' => (string) (int) $value,
+            'array' => sprintf("'%s'", implode("', '", $value)),
+        };
+    }
+
+    private function assertVariableTypes(string $varType, array $availableTypes, mixed $var): void
+    {
+        if (!in_array($varType, $availableTypes)) {
+            throw new \Exception('Unsupported variable type: ' . $varType . ' var: ' . print_r($var, true));
+        }
     }
 }
