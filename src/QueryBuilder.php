@@ -13,6 +13,7 @@ class QueryBuilder
         $hasPlaceholders = preg_match_all(
             <<<REGEXP
         /(?|
+        \{.*?\}|
         \?a|
         \?d|
         \?\#|
@@ -25,14 +26,19 @@ class QueryBuilder
             PREG_OFFSET_CAPTURE
         );
         if ($hasPlaceholders) {
+            $placeholders = $placeholders[0];
+
             $substitutions = [];
 
-            foreach ($placeholders[0] as $i => $placeholder) {
+            foreach ($placeholders as $i => $placeholder) {
                 [$symbol, $position] = $placeholder;
                 $substitutions[] = [
                     'position' => $position,
                     'what' => $symbol,
-                    'with' => $this->castValue($params[$i], $symbol),
+                    'with' => match ($params[$i]) {
+                        ModifierEnum::CONDITIONAL_BLOCK_SKIP => '',
+                        default => $this->castValue($params[$i], $symbol),
+                    },
                 ];
             }
             $offset = 0;
@@ -45,7 +51,6 @@ class QueryBuilder
                 $resultSql = substr_replace($resultSql, $with, $position + $offset, strlen($symbol));
                 $offset += strlen($with) - strlen($symbol);
             }
-            //$resultSql = str_replace($placeholders[0], $substitutions, $resultSql);
         }
 
         return $resultSql;
@@ -55,19 +60,19 @@ class QueryBuilder
     {
         $varType = gettype($var);
         switch ($symbol) {
-            case '?':
+            case ModifierEnum::ANY->value:
                 $this->assertVariableTypes($varType, ['string', 'integer', 'float', 'boolean', 'null'], $var);
                 $result = $this->castValueInternal($var);
                 break;
-            case '?d':
+            case ModifierEnum::INTEGER->value:
                 $this->assertVariableTypes($varType, ['integer', 'boolean'], $var);
                 $result = $this->castValueInternal($var);
                 break;
-            case '?#':
+            case ModifierEnum::IDENTIFIERS->value:
                 $this->assertVariableTypes($varType, ['array', 'string'], $var);
                 $result = $this->castValueInternal($var, '`');
                 break;
-            case '?a':
+            case ModifierEnum::ARRAY->value:
                 $this->assertVariableTypes($varType, ['array'], $var);
                 $result = [];
                 if (array_is_list($var)) {
@@ -84,6 +89,13 @@ class QueryBuilder
                 $result = sprintf("%s", implode(", ", $result));
                 break;
             default:
+                if (str_starts_with($symbol, '{') && str_ends_with($symbol, '}')) {
+                    $result = $this->build(
+                        substr($symbol, 1, -1),
+                        [$var],
+                    );
+                    break;
+                }
                 throw new \Exception('Unsupported modified: ' . $symbol);
         }
 

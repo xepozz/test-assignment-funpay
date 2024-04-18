@@ -33,25 +33,25 @@ class IntegrationTest extends TestCase
             [['name' => 'Jack', 'email' => null]]
         );
 
-        //foreach ([true] as $block) {
-        //    $results[] = $database->buildQuery(
-        //        'SELECT name FROM users WHERE ?# IN (?a){ AND block = ?d}',
-        //        ['user_id', [1, 2, 3], $block ?? $database->skip()]
-        //    );
-        //}
+        foreach ([null, true] as $block) {
+            $results[] = $database->buildQuery(
+                'SELECT name FROM users WHERE ?# IN (?a){ AND block = ?d}',
+                ['user_id', [1, 2, 3], $block ?? $database->skip()]
+            );
+        }
 
         $correct = [
             'SELECT name FROM users WHERE user_id = 1',
             'SELECT * FROM users WHERE name = \'Jack\' AND block = 0',
             'SELECT `name`, `email` FROM users WHERE user_id = 2 AND block = 1',
             'UPDATE users SET `name` = \'Jack\', `email` = NULL WHERE user_id = -1',
-            //'SELECT name FROM users WHERE `user_id` IN (1, 2, 3)',
-            //'SELECT name FROM users WHERE `user_id` IN (1, 2, 3) AND block = 1',
+            'SELECT name FROM users WHERE `user_id` IN (1, 2, 3)',
+            'SELECT name FROM users WHERE `user_id` IN (1, 2, 3) AND block = 1',
         ];
 
         $this->assertEquals($correct, $results);
-        //if ($results !== $correct) {
-        //    throw new Exception('Failure.');
-        //}
+        if ($results !== $correct) {
+            throw new Exception('Failure.');
+        }
     }
 }

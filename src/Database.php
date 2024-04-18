@@ -19,6 +19,6 @@ class Database implements DatabaseInterface
 
     public function skip()
     {
-        throw new \Exception();
+        return ModifierEnum::CONDITIONAL_BLOCK_SKIP;
     }
 }

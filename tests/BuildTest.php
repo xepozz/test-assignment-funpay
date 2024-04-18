@@ -56,6 +56,16 @@ class BuildTest extends TestCase
             ['user_id', [1, 2, 3]],
             'SELECT name FROM users WHERE `user_id` IN (1, 2, 3)',
         ];
+        yield 'condition skip' => [
+            "SELECT name FROM users WHERE ?# IN (?a){ AND block = ?d}",
+            ['user_id', [1, 2, 3], ModifierEnum::CONDITIONAL_BLOCK_SKIP],
+            'SELECT name FROM users WHERE `user_id` IN (1, 2, 3)',
+        ];
+        yield 'condition replace' => [
+            "SELECT name FROM users WHERE ?# IN (?a){ AND block = ?d}",
+            ['user_id', [1, 2, 3], true],
+            'SELECT name FROM users WHERE `user_id` IN (1, 2, 3) AND block = 1',
+        ];
     }
 
     #[DataProvider('dataQueryBuilder')]
