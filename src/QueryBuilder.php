@@ -32,7 +32,7 @@ class QueryBuilder
                 $substitutions[] = [
                     'position' => $position,
                     'what' => $symbol,
-                    'with' => $this->escape($params[$i], $symbol),
+                    'with' => $this->castValue($params[$i], $symbol),
                 ];
             }
             $offset = 0;
@@ -51,31 +51,34 @@ class QueryBuilder
         return $resultSql;
     }
 
-    private function escape(mixed $var, string $symbol): mixed
+    private function castValue(mixed $var, string $symbol): mixed
     {
-        $result = $var;
         $varType = gettype($var);
         switch ($symbol) {
             case '?':
                 $this->assertVariableTypes($varType, ['string', 'integer', 'float', 'boolean', 'null'], $var);
-                $result = $this->castValue($var);
+                $result = $this->castValueInternal($var);
                 break;
             case '?d':
                 $this->assertVariableTypes($varType, ['integer', 'boolean'], $var);
-                $result = $this->castValue($var);
+                $result = $this->castValueInternal($var);
                 break;
             case '?#':
                 $this->assertVariableTypes($varType, ['array', 'string'], $var);
-                $result = $this->castValue($var, '`');
+                $result = $this->castValueInternal($var, '`');
                 break;
             case '?a':
                 $this->assertVariableTypes($varType, ['array'], $var);
                 $result = [];
                 if (array_is_list($var)) {
-                    $result = array_map($this->castValue(...), $var);
+                    $result = array_map($this->castValueInternal(...), $var);
                 } else {
                     foreach ($var as $key => $value) {
-                        $result[] = sprintf('%s = %s', $key, $this->castValue($value));
+                        $result[] = sprintf(
+                            '%s = %s',
+                            $this->castValueInternal($key, '`'),
+                            $this->castValueInternal($value)
+                        );
                     }
                 }
                 $result = sprintf("%s", implode(", ", $result));
@@ -87,7 +90,7 @@ class QueryBuilder
         return $result;
     }
 
-    private function castValue(mixed $value, string $escapeChar = "'"): string
+    private function castValueInternal(mixed $value, string $escapeChar = "'"): string
     {
         return match (gettype($value)) {
             'string' => sprintf("%s%s%s", $escapeChar, $value, $escapeChar),

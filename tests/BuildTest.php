@@ -44,7 +44,7 @@ class BuildTest extends TestCase
         yield 'array params' => [
             "UPDATE users SET ?a WHERE user_id = -1",
             [['name' => 'Jack', 'email' => null]],
-            "UPDATE users SET name = 'Jack', email = NULL WHERE user_id = -1",
+            "UPDATE users SET `name` = 'Jack', `email` = NULL WHERE user_id = -1",
         ];
         yield 'list of ints' => [
             "SELECT name FROM users WHERE user_id IN (?a)",
