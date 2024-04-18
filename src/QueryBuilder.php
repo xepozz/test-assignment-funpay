@@ -61,11 +61,11 @@ class QueryBuilder
         $varType = gettype($var);
         switch ($symbol) {
             case ModifierEnum::ANY->value:
-                $this->assertVariableTypes($varType, ['string', 'integer', 'float', 'boolean', 'null'], $var);
+                $this->assertVariableTypes($varType, ['string', 'integer', 'float', 'boolean', 'null', 'double'], $var);
                 $result = $this->castValueInternal($var);
                 break;
             case ModifierEnum::INTEGER->value:
-                $this->assertVariableTypes($varType, ['integer', 'boolean'], $var);
+                $this->assertVariableTypes($varType, ['integer', 'boolean', 'double'], $var);
                 $result = $this->castValueInternal($var);
                 break;
             case ModifierEnum::IDENTIFIERS->value:
@@ -105,8 +105,9 @@ class QueryBuilder
     private function castValueInternal(mixed $value, string $escapeChar = "'"): string
     {
         return match (gettype($value)) {
-            'string' => sprintf("%s%s%s", $escapeChar, $value, $escapeChar),
+            'string' => sprintf("%s%s%s", $escapeChar, addcslashes($value, "'"), $escapeChar),
             'integer' => (string) $value,
+            'double' => (string) $value,
             'NULL' => 'NULL',
             'boolean' => (string) (int) $value,
             'array' => sprintf(

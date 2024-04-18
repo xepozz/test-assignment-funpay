@@ -16,31 +16,65 @@ class BuildTest extends TestCase
             [],
             'SELECT name FROM users WHERE user_id = 1',
         ];
-        yield 'string param' => [
+
+        yield 'any string param' => [
             'SELECT * FROM users WHERE name = ? AND block = 0',
             ['Jack'],
             "SELECT * FROM users WHERE name = 'Jack' AND block = 0",
         ];
+        yield 'any string param with quote' => [
+            'SELECT * FROM users WHERE name IN (?, ?)',
+            ['Jack', "Dmitrii's Father"],
+            "SELECT * FROM users WHERE name IN ('Jack', 'Dmitrii\'s Father')",
+        ];
+        yield 'any int param' => [
+            'SELECT * FROM users WHERE block = ?',
+            [55],
+            "SELECT * FROM users WHERE block = 55",
+        ];
+        yield 'any float param' => [
+            'SELECT * FROM users WHERE block = ?',
+            [55.33],
+            "SELECT * FROM users WHERE block = 55.33",
+        ];
+        yield 'any null param' => [
+            'SELECT * FROM users WHERE block = ?',
+            [55.33],
+            "SELECT * FROM users WHERE block = 55.33",
+        ];
+
         yield 'int param' => [
             "SELECT * FROM users WHERE user_id = ?d",
             [2],
             "SELECT * FROM users WHERE user_id = 2",
+        ];
+        yield 'int hex param' => [
+            "SELECT * FROM users WHERE user_id = ?d",
+            [0xFF],
+            "SELECT * FROM users WHERE user_id = 255",
+        ];
+        yield 'float param' => [
+            "SELECT * FROM users WHERE user_id = ?d",
+            [3.3333],
+            "SELECT * FROM users WHERE user_id = 3.3333",
         ];
         yield 'bool to int param' => [
             "SELECT * FROM users WHERE name = 'Jack' AND block = ?d",
             [true],
             "SELECT * FROM users WHERE name = 'Jack' AND block = 1",
         ];
+
         yield 'two params' => [
             "SELECT * FROM users WHERE name = ? AND block = ?d",
             ['Jack', true],
             "SELECT * FROM users WHERE name = 'Jack' AND block = 1",
         ];
         yield 'array of identifiers' => [
-            "SELECT ?# FROM users WHERE user_id = ?d AND block = ?d",
-            [['name', 'email'], 2, true],
-            "SELECT `name`, `email` FROM users WHERE user_id = 2 AND block = 1",
+            "SELECT ?# FROM users",
+            [['name', 'email']],
+            "SELECT `name`, `email` FROM users",
         ];
+
         yield 'array params' => [
             "UPDATE users SET ?a WHERE user_id = -1",
             [['name' => 'Jack', 'email' => null]],
@@ -51,11 +85,13 @@ class BuildTest extends TestCase
             [[1, 2, 3]],
             'SELECT name FROM users WHERE user_id IN (1, 2, 3)',
         ];
+
         yield 'array of ints' => [
             "SELECT name FROM users WHERE ?# IN (?a)",
             ['user_id', [1, 2, 3]],
             'SELECT name FROM users WHERE `user_id` IN (1, 2, 3)',
         ];
+
         yield 'condition skip' => [
             "SELECT name FROM users WHERE ?# IN (?a){ AND block = ?d}",
             ['user_id', [1, 2, 3], ModifierEnum::CONDITIONAL_BLOCK_SKIP],
@@ -65,6 +101,16 @@ class BuildTest extends TestCase
             "SELECT name FROM users WHERE ?# IN (?a){ AND block = ?d}",
             ['user_id', [1, 2, 3], true],
             'SELECT name FROM users WHERE `user_id` IN (1, 2, 3) AND block = 1',
+        ];
+        yield 'condition replace multiple1' => [
+            "SELECT name FROM users WHERE ?# IN (?a){ AND block = ?d}{ OR block = ?d}",
+            ['user_id', [1, 2, 3], true, ModifierEnum::CONDITIONAL_BLOCK_SKIP],
+            'SELECT name FROM users WHERE `user_id` IN (1, 2, 3) AND block = 1',
+        ];
+        yield 'condition replace multiple2' => [
+            "SELECT name FROM users WHERE ?# IN (?a){AND block = ?d}{ OR block = ?d}",
+            ['user_id', [1, 2, 3], ModifierEnum::CONDITIONAL_BLOCK_SKIP, true],
+            'SELECT name FROM users WHERE `user_id` IN (1, 2, 3) OR block = 1',
         ];
     }
 
