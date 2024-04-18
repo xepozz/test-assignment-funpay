@@ -23,11 +23,10 @@ class QueryBuilder
         \?\#|
         \?
         )/x
-        REGEXP
-            ,
+        REGEXP,
             $sql,
             $placeholders,
-            PREG_OFFSET_CAPTURE
+            PREG_OFFSET_CAPTURE,
         );
         if ($hasPlaceholders) {
             $placeholders = $placeholders[0];
@@ -133,7 +132,18 @@ class QueryBuilder
     private function assertVariableTypes(string $varType, array $availableTypes, mixed $var): void
     {
         if (!in_array($varType, $availableTypes)) {
-            throw new \Exception('Unsupported variable type: ' . $varType . ' var: ' . print_r($var, true));
+            throw new \Exception(
+                sprintf(
+                    'Unsupported variable type: %s var: %s. Possible types: %s',
+                    $varType,
+                    match (true) {
+                        is_bool($var) => $var ? 'true' : 'false',
+                        is_object($var) => sprintf('(object of \\%s)', $var::class),
+                        default => print_r($var, true)
+                    },
+                    sprintf('"%s"', implode('", "', $availableTypes)),
+                )
+            );
         }
     }
 }

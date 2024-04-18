@@ -6,6 +6,7 @@ namespace Xepozz\FunpayTestAssignment\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class BuildTest extends TestCase
 {
@@ -153,5 +154,47 @@ class BuildTest extends TestCase
         $actualSql = $qb->build($sql, $params);
 
         $this->assertEquals($expectedSql, $actualSql);
+    }
+
+    #[DataProvider('dataUnsupportedDataTypes')]
+    public function testUnsupportedModifier(string $modifier, $value, string $errorMessage)
+    {
+        $qb = new QueryBuilder();
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage($errorMessage);
+        $qb->build("SELECT {$modifier}", [$value]);
+    }
+
+    public static function dataUnsupportedDataTypes()
+    {
+        yield [
+            '?',
+            new stdClass(),
+            'Unsupported variable type: object var: (object of \stdClass). Possible types: "string", "integer", "float", "boolean", "null", "double"',
+        ];
+        yield [
+            '?',
+            [],
+            'Unsupported variable type: array var: Array
+(
+)
+. Possible types: "string", "integer", "float", "boolean", "null", "double"',
+        ];
+        yield [
+            '?d',
+            'Dmitrii',
+            'Unsupported variable type: string var: Dmitrii. Possible types: "integer", "boolean", "double"',
+        ];
+        yield [
+            '?#',
+            true,
+            'Unsupported variable type: boolean var: true. Possible types: "array", "string"',
+        ];
+        yield [
+            '?a',
+            'str',
+            'Unsupported variable type: string var: str. Possible types: "array"',
+        ];
     }
 }
