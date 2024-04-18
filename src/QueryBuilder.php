@@ -71,8 +71,12 @@ class QueryBuilder
             case '?a':
                 $this->assertVariableTypes($varType, ['array'], $var);
                 $result = [];
-                foreach ($var as $key => $value) {
-                    $result[] = sprintf('%s = %s', $key, $this->castValue($value));
+                if (array_is_list($var)) {
+                    $result = array_map($this->castValue(...), $var);
+                } else {
+                    foreach ($var as $key => $value) {
+                        $result[] = sprintf('%s = %s', $key, $this->castValue($value));
+                    }
                 }
                 $result = sprintf("%s", implode(", ", $result));
                 break;

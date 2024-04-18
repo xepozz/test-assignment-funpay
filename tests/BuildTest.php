@@ -46,6 +46,11 @@ class BuildTest extends TestCase
             [['name' => 'Jack', 'email' => null]],
             "UPDATE users SET name = 'Jack', email = NULL WHERE user_id = -1",
         ];
+        yield 'array of ints' => [
+            "SELECT name FROM users WHERE user_id IN (?a)",
+            [[1, 2, 3]],
+            'SELECT name FROM users WHERE user_id IN (1, 2, 3)',
+        ];
     }
 
     #[DataProvider('dataQueryBuilder')]
