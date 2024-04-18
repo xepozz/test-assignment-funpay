@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
-class BuildTest extends TestCase
+class QueryBuilderTest extends TestCase
 {
     public static function dataQueryBuilder()
     {
