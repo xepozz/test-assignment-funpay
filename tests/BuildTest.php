@@ -39,17 +39,22 @@ class BuildTest extends TestCase
         yield 'array of identifiers' => [
             "SELECT ?# FROM users WHERE user_id = ?d AND block = ?d",
             [['name', 'email'], 2, true],
-            "SELECT 'name', 'email' FROM users WHERE user_id = 2 AND block = 1",
+            "SELECT `name`, `email` FROM users WHERE user_id = 2 AND block = 1",
         ];
         yield 'array params' => [
             "UPDATE users SET ?a WHERE user_id = -1",
             [['name' => 'Jack', 'email' => null]],
             "UPDATE users SET name = 'Jack', email = NULL WHERE user_id = -1",
         ];
-        yield 'array of ints' => [
+        yield 'list of ints' => [
             "SELECT name FROM users WHERE user_id IN (?a)",
             [[1, 2, 3]],
             'SELECT name FROM users WHERE user_id IN (1, 2, 3)',
+        ];
+        yield 'array of ints' => [
+            "SELECT name FROM users WHERE ?# IN (?a)",
+            ['user_id', [1, 2, 3]],
+            'SELECT name FROM users WHERE `user_id` IN (1, 2, 3)',
         ];
     }
 

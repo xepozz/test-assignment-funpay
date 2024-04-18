@@ -65,8 +65,8 @@ class QueryBuilder
                 $result = $this->castValue($var);
                 break;
             case '?#':
-                $this->assertVariableTypes($varType, ['array'], $var);
-                $result = $this->castValue($var);
+                $this->assertVariableTypes($varType, ['array', 'string'], $var);
+                $result = $this->castValue($var, '`');
                 break;
             case '?a':
                 $this->assertVariableTypes($varType, ['array'], $var);
@@ -87,14 +87,19 @@ class QueryBuilder
         return $result;
     }
 
-    private function castValue(mixed $value): string
+    private function castValue(mixed $value, string $escapeChar = "'"): string
     {
         return match (gettype($value)) {
-            'string' => sprintf("'%s'", $value),
+            'string' => sprintf("%s%s%s", $escapeChar, $value, $escapeChar),
             'integer' => (string) $value,
             'NULL' => 'NULL',
             'boolean' => (string) (int) $value,
-            'array' => sprintf("'%s'", implode("', '", $value)),
+            'array' => sprintf(
+                "%s%s%s",
+                $escapeChar,
+                implode(sprintf("%s, %s", $escapeChar, $escapeChar), $value),
+                $escapeChar
+            ),
         };
     }
 
