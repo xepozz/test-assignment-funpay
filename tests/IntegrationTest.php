@@ -6,6 +6,8 @@ namespace Xepozz\FunpayTestAssignment\Tests;
 
 use Exception;
 use PHPUnit\Framework\TestCase;
+use Xepozz\FunpayTestAssignment\Database;
+use Xepozz\FunpayTestAssignment\QueryBuilder;
 
 class IntegrationTest extends TestCase
 {

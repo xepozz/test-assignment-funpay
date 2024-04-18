@@ -1,6 +1,6 @@
 <?php
 
-namespace Xepozz\FunpayTestAssignment\Tests;
+namespace Xepozz\FunpayTestAssignment;
 
 enum ModifierEnum: string
 {

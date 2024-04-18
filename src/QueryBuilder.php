@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Xepozz\FunpayTestAssignment\Tests;
+namespace Xepozz\FunpayTestAssignment;
 
 class QueryBuilder
 {

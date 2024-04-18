@@ -7,6 +7,8 @@ namespace Xepozz\FunpayTestAssignment\Tests;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use Xepozz\FunpayTestAssignment\ModifierEnum;
+use Xepozz\FunpayTestAssignment\QueryBuilder;
 
 class QueryBuilderTest extends TestCase
 {
