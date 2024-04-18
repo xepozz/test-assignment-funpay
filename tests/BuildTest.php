@@ -157,25 +157,30 @@ class BuildTest extends TestCase
     }
 
     #[DataProvider('dataUnsupportedDataTypes')]
-    public function testUnsupportedModifier(string $modifier, $value, string $errorMessage)
+    public function testUnsupportedModifier(string $modifier, array $values, string $errorMessage)
     {
         $qb = new QueryBuilder();
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage($errorMessage);
-        $qb->build("SELECT {$modifier}", [$value]);
+        $qb->build("SELECT {$modifier}", $values);
     }
 
-    public static function dataUnsupportedDataTypes()
+    public static function dataUnsupportedDataTypes(): iterable
     {
         yield [
             '?',
-            new stdClass(),
+            [new stdClass()],
             'Unsupported variable type: object var: (object of \stdClass). Possible types: "string", "integer", "float", "boolean", "null", "double"',
         ];
         yield [
             '?',
             [],
+            'Unsupported variable type: NULL var: . Possible types: "string", "integer", "float", "boolean", "null", "double"',
+        ];
+        yield [
+            '?',
+            [[]],
             'Unsupported variable type: array var: Array
 (
 )
@@ -183,17 +188,17 @@ class BuildTest extends TestCase
         ];
         yield [
             '?d',
-            'Dmitrii',
+            ['Dmitrii'],
             'Unsupported variable type: string var: Dmitrii. Possible types: "integer", "boolean", "double"',
         ];
         yield [
             '?#',
-            true,
+            [true],
             'Unsupported variable type: boolean var: true. Possible types: "array", "string"',
         ];
         yield [
             '?a',
-            'str',
+            ['str'],
             'Unsupported variable type: string var: str. Possible types: "array"',
         ];
     }
