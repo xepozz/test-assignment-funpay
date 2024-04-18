@@ -112,6 +112,28 @@ class BuildTest extends TestCase
             ['user_id', [1, 2, 3], ModifierEnum::CONDITIONAL_BLOCK_SKIP, true],
             'SELECT name FROM users WHERE `user_id` IN (1, 2, 3) OR block = 1',
         ];
+
+        yield 'recursive conditional skip parent' => [
+            "SELECT name FROM users{ WHERE block = ?d{ OR block = ?d}}",
+            [ModifierEnum::CONDITIONAL_BLOCK_SKIP, true],
+            'SELECT name FROM users',
+        ];
+        yield 'recursive conditional skip children' => [
+            "SELECT name FROM users{ WHERE block = ?d{ OR block = ?d}}",
+            [true, ModifierEnum::CONDITIONAL_BLOCK_SKIP],
+            'SELECT name FROM users WHERE block = 1',
+        ];
+        yield 'recursive conditional' => [
+            "SELECT name FROM users WHERE {block = ?d{ OR block = ?d}}",
+            [true, false],
+            'SELECT name FROM users WHERE block = 1 OR block = 0',
+        ];
+
+        //yield 'recursive conditional with tail' => [
+        //    "SELECT name FROM users WHERE {block = ?d{ OR block = ?d}} ORDER BY ?#",
+        //    [true, false, 'name'],
+        //    'SELECT name FROM users WHERE block = 1 OR block = 0 ORDER BY `name`',
+        //];
     }
 
     #[DataProvider('dataQueryBuilder')]

@@ -13,7 +13,7 @@ class QueryBuilder
         $hasPlaceholders = preg_match_all(
             <<<REGEXP
         /(?|
-        \{.*?\}|
+        (?'cond'\{(?>[^{}]+|\g'cond')*\})|
         \?a|
         \?d|
         \?\#|
@@ -29,7 +29,6 @@ class QueryBuilder
             $placeholders = $placeholders[0];
 
             $substitutions = [];
-
             foreach ($placeholders as $i => $placeholder) {
                 [$symbol, $position] = $placeholder;
                 $substitutions[] = [
@@ -37,10 +36,11 @@ class QueryBuilder
                     'what' => $symbol,
                     'with' => match ($params[$i]) {
                         ModifierEnum::CONDITIONAL_BLOCK_SKIP => '',
-                        default => $this->castValue($params[$i], $symbol),
+                        default => $this->castValue($params[$i], $symbol, array_slice($params, $i)),
                     },
                 ];
             }
+
             $offset = 0;
             foreach ($substitutions as $substitution) {
                 [
@@ -56,7 +56,7 @@ class QueryBuilder
         return $resultSql;
     }
 
-    private function castValue(mixed $var, string $symbol): mixed
+    private function castValue(mixed $var, string $symbol, array $restParams): mixed
     {
         $varType = gettype($var);
         switch ($symbol) {
@@ -92,7 +92,7 @@ class QueryBuilder
                 if (str_starts_with($symbol, '{') && str_ends_with($symbol, '}')) {
                     $result = $this->build(
                         substr($symbol, 1, -1),
-                        [$var],
+                        $restParams,
                     );
                     break;
                 }
