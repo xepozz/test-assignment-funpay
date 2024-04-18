@@ -1,5 +1,7 @@
 <?php
 
+use Xepozz\FunpayTestAssignment\Tests\Database;
+
 spl_autoload_register(function ($class) {
     $a = array_slice(explode('\\', $class), 1);
     if (!$a) {

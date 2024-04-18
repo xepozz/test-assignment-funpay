@@ -1,5 +1,6 @@
 <?php
 
+use Xepozz\FunpayTestAssignment\Tests\DatabaseInterface;
 
 class DatabaseTest
 {
