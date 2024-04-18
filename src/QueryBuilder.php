@@ -6,8 +6,12 @@ namespace Xepozz\FunpayTestAssignment\Tests;
 
 class QueryBuilder
 {
+    private array $params = [];
+
     public function build(string $sql, array $params): string
     {
+        $this->params = $params;
+
         $resultSql = $sql;
 
         $hasPlaceholders = preg_match_all(
@@ -31,12 +35,14 @@ class QueryBuilder
             $substitutions = [];
             foreach ($placeholders as $i => $placeholder) {
                 [$symbol, $position] = $placeholder;
+                $restParams = $this->params;
+                $parameter = $this->popParameter();
                 $substitutions[] = [
                     'position' => $position,
                     'what' => $symbol,
-                    'with' => match ($params[$i]) {
+                    'with' => match ($parameter) {
                         ModifierEnum::CONDITIONAL_BLOCK_SKIP => '',
-                        default => $this->castValue($params[$i], $symbol, array_slice($params, $i)),
+                        default => $this->castValue($parameter, $symbol, $restParams),
                     },
                 ];
             }
@@ -54,6 +60,11 @@ class QueryBuilder
         }
 
         return $resultSql;
+    }
+
+    private function popParameter()
+    {
+        return array_shift($this->params);
     }
 
     private function castValue(mixed $var, string $symbol, array $restParams): mixed

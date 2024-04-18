@@ -129,11 +129,21 @@ class BuildTest extends TestCase
             'SELECT name FROM users WHERE block = 1 OR block = 0',
         ];
 
-        //yield 'recursive conditional with tail' => [
-        //    "SELECT name FROM users WHERE {block = ?d{ OR block = ?d}} ORDER BY ?#",
-        //    [true, false, 'name'],
-        //    'SELECT name FROM users WHERE block = 1 OR block = 0 ORDER BY `name`',
-        //];
+        yield 'recursive conditional with tail' => [
+            "SELECT name FROM users WHERE {block = ?d{ OR block = ?d}} ORDER BY ?#",
+            [true, false, 'name'],
+            'SELECT name FROM users WHERE block = 1 OR block = 0 ORDER BY `name`',
+        ];
+        yield 'tail after recursive conditional skip' => [
+            "SELECT name FROM users WHERE {block = ?d{ OR block = ?d}} ORDER BY ?#{ LIMIT ?}",
+            [true, false, 'name', ModifierEnum::CONDITIONAL_BLOCK_SKIP],
+            'SELECT name FROM users WHERE block = 1 OR block = 0 ORDER BY `name`',
+        ];
+        yield 'tail after recursive conditional replace' => [
+            "SELECT name FROM users WHERE {block = ?d{ OR block = ?d}} ORDER BY ?#{ LIMIT ?}",
+            [true, false, 'name', 1],
+            'SELECT name FROM users WHERE block = 1 OR block = 0 ORDER BY `name` LIMIT 1',
+        ];
     }
 
     #[DataProvider('dataQueryBuilder')]
