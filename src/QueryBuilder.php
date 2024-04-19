@@ -6,16 +6,7 @@ namespace Xepozz\FunpayTestAssignment;
 
 class QueryBuilder
 {
-    private array $params = [];
-
-    public function build(string $sql, array $params): string
-    {
-        $this->params = $params;
-
-        $resultSql = $sql;
-
-        $hasPlaceholders = preg_match_all(
-            <<<REGEXP
+    private const REGULAR_EXPRESSION = <<<REGEXP
         /(?|
         (?'cond'\{(?>[^{}]+|\g'cond')*\})|
         \?a|
@@ -23,42 +14,26 @@ class QueryBuilder
         \?\#|
         \?
         )/x
-        REGEXP,
-            $sql,
-            $placeholders,
-            PREG_OFFSET_CAPTURE,
-        );
-        if ($hasPlaceholders) {
-            $placeholders = $placeholders[0];
+        REGEXP;
+    private array $params = [];
 
-            $substitutions = [];
-            foreach ($placeholders as $i => $placeholder) {
-                [$symbol, $position] = $placeholder;
+    public function build(string $sql, array $params): string
+    {
+        $this->params = $params;
+
+        return preg_replace_callback(
+            self::REGULAR_EXPRESSION,
+            function ($matches) {
+                $symbol = $matches[0];
                 $restParams = $this->params;
                 $parameter = $this->popParameter();
-                $substitutions[] = [
-                    'position' => $position,
-                    'what' => $symbol,
-                    'with' => match ($parameter) {
-                        ModifierEnum::CONDITIONAL_BLOCK_SKIP => '',
-                        default => $this->castValue($parameter, $symbol, $restParams),
-                    },
-                ];
-            }
-
-            $offset = 0;
-            foreach ($substitutions as $substitution) {
-                [
-                    'position' => $position,
-                    'what' => $symbol,
-                    'with' => $with,
-                ] = $substitution;
-                $resultSql = substr_replace($resultSql, $with, $position + $offset, strlen($symbol));
-                $offset += strlen($with) - strlen($symbol);
-            }
-        }
-
-        return $resultSql;
+                return match ($parameter) {
+                    ModifierEnum::CONDITIONAL_BLOCK_SKIP => '',
+                    default => $this->castValue($parameter, $symbol, $restParams),
+                };
+            },
+            $sql,
+        );
     }
 
     private function popParameter()
